@@ -197,12 +197,18 @@ if (btnFullscreen) {
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    fetchNextQrToken();
+function initDashboard() {
     startCountdown();
     pollAttendees();
+    if (attendeePollInterval) clearInterval(attendeePollInterval);
     attendeePollInterval = setInterval(pollAttendees, 3500);
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboard);
+} else {
+    initDashboard();
+}
 
 // Clean up intervals on page unload
 window.addEventListener('beforeunload', () => {

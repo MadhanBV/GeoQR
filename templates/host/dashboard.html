@@ -48,7 +48,7 @@
 
             <!-- Dynamic QR Code Card -->
             <div class="qr-container mb-6 relative group bg-white">
-                <img id="qrImage" src="" alt="Dynamic Event QR Code"
+                <img id="qrImage" src="{{ initial_qr_image }}" alt="Dynamic Event QR Code"
                     class="w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-xl transition-opacity duration-200">
                 
                 <!-- Loading Overlay -->
@@ -78,7 +78,7 @@
             <!-- Direct Link Copy for Testing -->
             <div class="w-full pt-6 mt-6 border-t border-slate-100">
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="directCheckinUrl" readonly
+                    <input type="text" id="directCheckinUrl" value="{{ initial_checkin_url }}" readonly
                         class="w-full px-3 py-2 text-xs font-mono bg-slate-50 rounded-lg border border-slate-200 text-slate-600 outline-none select-all truncate">
                     <button id="btnCopyLink" onclick="copyCheckinLink()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition shrink-0">
                         <i class="fa-regular fa-copy mr-1"></i> Copy

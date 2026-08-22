@@ -166,6 +166,8 @@ if (form) {
 }
 
 // Auto-trigger GPS capture immediately when the page loads
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', acquireGpsLocation);
+} else {
     acquireGpsLocation();
-});
+}

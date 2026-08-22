@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template_string, render_template, redirect, url_for
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 
 
@@ -10,6 +11,9 @@ def create_app(config_class=Config):
     """
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Enable ProxyFix for proper HTTPS url resolution behind Render / Cloudflare reverse proxies
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # Register Blueprints (will be imported and attached as we build each module)
     try:

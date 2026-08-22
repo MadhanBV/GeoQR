@@ -62,10 +62,17 @@ def event_dashboard(event_id: str):
         flash("Event not found.", "error")
         return redirect(url_for("host.create_event_page"))
 
+    # Pre-render initial QR token so image displays immediately without JS delay
+    token, timestamp = generate_qr_token(event_id)
+    checkin_url = request.host_url.rstrip("/") + url_for("student.checkin_page", event_id=event_id, token=token)
+    initial_qr_image = generate_qr_base64(checkin_url)
+
     return render_template(
         "host/dashboard.html",
         event=event,
-        qr_expiry_seconds=Config.QR_TOKEN_MAX_AGE_SECONDS
+        qr_expiry_seconds=Config.QR_TOKEN_MAX_AGE_SECONDS,
+        initial_qr_image=initial_qr_image,
+        initial_checkin_url=checkin_url
     )
 
 

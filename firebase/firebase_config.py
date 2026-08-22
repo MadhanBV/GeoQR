@@ -113,56 +113,116 @@ class MockFirestoreClient:
         self._collections.clear()
 
 
-# Global database instance
+# Global database instance and status
 _db_client = None
+_db_status = {
+    "mode": "UNKNOWN",
+    "project_id": None,
+    "source": None,
+    "error": None
+}
+
+
+def get_database_status() -> Dict[str, Any]:
+    """Returns the current database connection mode and diagnostics."""
+    if _db_client is None:
+        get_firestore_client()
+    return _db_status
 
 
 def get_firestore_client():
     """
     Initializes and returns the Firestore client instance.
-    If a valid serviceAccountKey.json is found, connects to live Google Firebase Firestore.
-    Otherwise, automatically falls back to MockFirestoreClient for local development/testing.
+    Searches multiple potential credential sources in priority order:
+    1. FIREBASE_CREDENTIALS_JSON (raw JSON string or Base64 in environment variables)
+    2. Config.FIREBASE_CREDENTIALS_PATH (configured file path)
+    3. /etc/secrets/serviceAccountKey.json (Render Secret Files default location)
+    4. /etc/secrets/firebase/serviceAccountKey.json
+    5. Local serviceAccountKey.json in project root or firebase/ folder
+    6. Falls back to MockFirestoreClient with clear diagnostics.
     """
-    global _db_client
+    global _db_client, _db_status
     if _db_client is not None:
         return _db_client
 
-    credentials_path = Config.FIREBASE_CREDENTIALS_PATH
-    credentials_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+    import firebase_admin
+    from firebase_admin import credentials, firestore
 
+    # 1. Check environment variable (Raw JSON or Base64)
+    credentials_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
     if credentials_json:
         try:
-            import firebase_admin
-            from firebase_admin import credentials, firestore
+            # Handle potential Base64 encoding or raw string
+            raw_str = credentials_json.strip()
+            if raw_str.startswith("{"):
+                cred_dict = json.loads(raw_str)
+            else:
+                import base64
+                decoded = base64.b64decode(raw_str).decode("utf-8")
+                cred_dict = json.loads(decoded)
 
             if not firebase_admin._apps:
-                cred_dict = json.loads(credentials_json)
                 cred = credentials.Certificate(cred_dict)
                 firebase_admin.initialize_app(cred)
 
             _db_client = firestore.client()
-            print("[FIREBASE] Connected to Live Firebase Firestore via environment variable.")
+            project_id = cred_dict.get("project_id", "Unknown")
+            _db_status = {
+                "mode": "LIVE_FIREBASE",
+                "project_id": project_id,
+                "source": "FIREBASE_CREDENTIALS_JSON environment variable"
+            }
+            print(f"[FIREBASE] Connected to Live Firebase Firestore (Project: '{project_id}') via env variable.")
             return _db_client
         except Exception as e:
-            print(f"[WARNING] Failed to connect to Firebase via environment variable: {e}")
+            err_msg = f"Failed to initialize Firebase from environment variable: {e}"
+            print(f"[WARNING] {err_msg}")
+            _db_status["error"] = err_msg
 
-    if os.path.exists(credentials_path):
-        try:
-            import firebase_admin
-            from firebase_admin import credentials, firestore
+    # 2. Check candidate file paths
+    candidate_paths = [
+        Config.FIREBASE_CREDENTIALS_PATH,
+        "/etc/secrets/serviceAccountKey.json",
+        "/etc/secrets/firebase/serviceAccountKey.json",
+        os.path.join(os.getcwd(), "firebase", "serviceAccountKey.json"),
+        os.path.join(os.getcwd(), "serviceAccountKey.json"),
+    ]
 
-            if not firebase_admin._apps:
-                cred = credentials.Certificate(credentials_path)
-                firebase_admin.initialize_app(cred)
+    for path in candidate_paths:
+        if path and os.path.exists(path):
+            try:
+                if not firebase_admin._apps:
+                    cred = credentials.Certificate(path)
+                    firebase_admin.initialize_app(cred)
 
-            _db_client = firestore.client()
-            print(f"[FIREBASE] Connected to Live Firebase Firestore via '{credentials_path}'")
-            return _db_client
-        except Exception as e:
-            print(f"[WARNING] Failed to connect to Live Firebase: {e}. Falling back to In-Memory Firestore.")
-    else:
-        print(f"[INFO] Firebase credentials not found at '{credentials_path}'.")
-        print("[INFO] Using In-Memory Firestore Emulator (All features active for local testing).")
+                _db_client = firestore.client()
+                # Read project ID from JSON file
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        file_data = json.load(f)
+                        project_id = file_data.get("project_id", "Unknown")
+                except Exception:
+                    project_id = "Unknown"
 
+                _db_status = {
+                    "mode": "LIVE_FIREBASE",
+                    "project_id": project_id,
+                    "source": f"File at '{path}'"
+                }
+                print(f"[FIREBASE] Connected to Live Firebase Firestore via '{path}' (Project: '{project_id}')")
+                return _db_client
+            except Exception as e:
+                err_msg = f"Failed to connect to Firebase via '{path}': {e}"
+                print(f"[WARNING] {err_msg}")
+                _db_status["error"] = err_msg
+
+    # Fallback to In-Memory Emulator
+    _db_status = {
+        "mode": "IN_MEMORY_EMULATOR",
+        "project_id": "local-emulator",
+        "source": "In-Memory fallback (No valid credentials detected)",
+        "error": _db_status.get("error")
+    }
+    print("[INFO] Firebase credentials not found or unreadable. Using In-Memory Firestore Emulator.")
     _db_client = MockFirestoreClient()
     return _db_client

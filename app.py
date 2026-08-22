@@ -35,11 +35,13 @@ def create_app(config_class=Config):
 
     @app.route("/health")
     def health_check():
-        """Health check endpoint to verify backend status."""
+        """Health check endpoint to verify backend status and database connection."""
+        from firebase.firebase_config import get_database_status
         return {
             "status": "healthy",
             "service": "GeoQR Attendance System",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "database": get_database_status()
         }
 
     return app

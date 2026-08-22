@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Status – GeoQR{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto py-4 sm:py-8">
+    <div class="geo-card p-6 sm:p-8 bg-white text-center">
+
+        {% if status_code == 'SUCCESS' or status_code == 'VERIFIED' %}
+            <!-- SUCCESS STATE -->
+            <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-emerald-100">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 mb-2">
+                <i class="fa-solid fa-shield-check mr-1.5 text-xs"></i> Verified Present
+            </span>
+            
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Attendance Recorded!</h1>
+            <p class="text-xs text-slate-500 mt-1 mb-6">Your physical presence inside the event radius has been verified and recorded.</p>
+
+            <!-- Verification Summary Box -->
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-2.5 mb-6 font-medium text-slate-700">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                    <span class="text-slate-400">Student Name:</span>
+                    <span class="font-bold text-slate-900">{{ student_name }}</span>
+                </div>
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                    <span class="text-slate-400">Student ID:</span>
+                    <span class="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">{{ student_id }}</span>
+                </div>
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                    <span class="text-slate-400">Event:</span>
+                    <span class="font-semibold text-slate-800 text-right truncate max-w-[200px]">{{ event_title }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Verified Distance:</span>
+                    <span class="font-mono font-bold text-emerald-600 flex items-center">
+                        <i class="fa-solid fa-location-dot mr-1"></i> {{ distance }}m (within {{ radius }}m)
+                    </span>
+                </div>
+            </div>
+
+        {% elif status_code == 'EXPIRED_QR' %}
+            <!-- EXPIRED QR STATE -->
+            <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-amber-100">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 mb-2">
+                <i class="fa-solid fa-hourglass-end mr-1.5 text-xs"></i> 25s Window Expired
+            </span>
+
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">QR Code Expired</h1>
+            <p class="text-xs text-slate-500 mt-1 mb-6">
+                To prevent proxy sharing, each QR code is only valid for <strong>25 seconds</strong>. The token you scanned has expired.
+            </p>
+
+            <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-200/70 text-xs text-amber-900 space-y-2 mb-6">
+                <div class="font-bold flex items-center justify-center">
+                    <i class="fa-solid fa-camera mr-1.5"></i> How to check in now:
+                </div>
+                <p class="text-[11px] text-amber-800">
+                    Look at the projector screen at the front of the room and scan the newly refreshed QR code with your phone.
+                </p>
+            </div>
+
+        {% elif status_code == 'OUT_OF_BOUNDS' %}
+            <!-- OUT OF BOUNDS GEOFENCE STATE -->
+            <div class="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-red-100">
+                <i class="fa-solid fa-map-location-dot"></i>
+            </div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-red-100 text-red-800 mb-2">
+                <i class="fa-solid fa-ban mr-1.5 text-xs"></i> Out of Geofence
+            </span>
+
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Too Far Away</h1>
+            <p class="text-xs text-slate-500 mt-1 mb-6">
+                Your device's GPS coordinates indicate you are not physically inside the event hall.
+            </p>
+
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-2.5 mb-6">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                    <span class="text-slate-400">Your Distance from Host:</span>
+                    <span class="font-mono font-bold text-red-600">{{ distance }} meters</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Maximum Allowed Radius:</span>
+                    <span class="font-mono font-bold text-slate-700">{{ radius }} meters</span>
+                </div>
+            </div>
+
+        {% elif status_code == 'DUPLICATE' %}
+            <!-- DUPLICATE ATTENDANCE STATE -->
+            <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-blue-100">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 mb-2">
+                <i class="fa-solid fa-check-double mr-1.5 text-xs"></i> Already Recorded
+            </span>
+
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Already Checked In</h1>
+            <p class="text-xs text-slate-500 mt-1 mb-6">
+                Student ID <span class="font-mono font-bold text-slate-800">{{ student_id }}</span> has already checked in for this event. Duplicate submissions are not allowed.
+            </p>
+
+        {% else %}
+            <!-- GENERAL ERROR STATE -->
+            <div class="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-red-100">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-red-100 text-red-800 mb-2">
+                <i class="fa-solid fa-xmark mr-1.5 text-xs"></i> Submission Failed
+            </span>
+
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Verification Failed</h1>
+            <p class="text-xs text-slate-500 mt-1 mb-6">{{ message|default("Your attendance could not be verified.") }}</p>
+        {% endif %}
+
+        <!-- Home Button -->
+        <a href="/" class="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-house"></i>
+            <span>Return to Home</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

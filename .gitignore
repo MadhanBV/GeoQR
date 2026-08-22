@@ -1,0 +1,26 @@
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Sensitive Secrets & Credentials (DO NOT COMMIT!)
+.env
+firebase/serviceAccountKey.json
+serviceAccountKey.json
+*.pem
+*.key
+
+# IDE & OS Metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

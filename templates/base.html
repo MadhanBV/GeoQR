@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GeoQR – Secure Anti-Proxy Attendance{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="h-full flex flex-col bg-slate-50 text-slate-800 antialiased">
+    <!-- Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Logo & Brand -->
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('host.create_event_page') }}" class="flex items-center space-x-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                            <i class="fa-solid fa-qrcode text-lg"></i>
+                        </div>
+                        <div>
+                            <span class="text-xl font-bold tracking-tight text-slate-900">Geo<span class="text-blue-600">QR</span></span>
+                            <span class="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">Anti-Proxy</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Nav Actions -->
+                <nav class="flex items-center space-x-3">
+                    <a href="{{ url_for('host.create_event_page') }}" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors">
+                        <i class="fa-solid fa-plus mr-2 text-blue-600"></i> New Event
+                    </a>
+                    <a href="{{ url_for('host.list_events_page') }}" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors">
+                        <i class="fa-solid fa-calendar-days mr-2 text-slate-400"></i> All Events
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Alerts Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-xl flex items-center justify-between border {% if category == 'error' %}bg-red-50 text-red-800 border-red-200{% elif category == 'success' %}bg-green-50 text-green-800 border-green-200{% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %}" role="alert">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid {% if category == 'error' %}fa-circle-exclamation text-red-500{% elif category == 'success' %}fa-circle-check text-green-500{% else %}fa-circle-info text-blue-500{% endif %} text-lg"></i>
+                            <span class="text-sm font-medium">{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 space-y-2 sm:space-y-0">
+            <div class="flex items-center space-x-2">
+                <span>GeoQR &copy; 2026</span>
+                <span>&bull;</span>
+                <span>Secure Anti-Proxy Attendance Verification</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="flex items-center"><i class="fa-solid fa-shield-halved text-blue-600 mr-1.5"></i> 25s Rotating Token</span>
+                <span class="flex items-center"><i class="fa-solid fa-location-dot text-emerald-600 mr-1.5"></i> Haversine Geofencing</span>
+            </div>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

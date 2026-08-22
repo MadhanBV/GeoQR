@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}All Events – GeoQR{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Your Events</h1>
+            <p class="mt-1 text-sm text-slate-500">Manage your active attendance sessions and display live QR codes.</p>
+        </div>
+        <a href="{{ url_for('host.create_event_page') }}"
+            class="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition">
+            <i class="fa-solid fa-plus mr-2"></i> Create New Event
+        </a>
+    </div>
+
+    <!-- Events Grid -->
+    {% if events %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for evt in events %}
+                <div class="geo-card p-6 flex flex-col justify-between hover:border-blue-300">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {% if evt.is_active %}bg-green-100 text-green-800{% else %}bg-slate-100 text-slate-600{% endif %}">
+                                <i class="fa-solid fa-circle text-[8px] mr-1.5 {% if evt.is_active %}text-green-500{% else %}text-slate-400{% endif %}"></i>
+                                {% if evt.is_active %}Active Session{% else %}Closed{% endif %}
+                            </span>
+                            <span class="text-xs font-mono text-slate-400">{{ evt.date }}</span>
+                        </div>
+
+                        <h3 class="text-lg font-bold text-slate-900 mb-1 leading-snug">{{ evt.title }}</h3>
+                        <p class="text-xs text-slate-500 mb-4 flex items-center">
+                            <i class="fa-solid fa-location-dot text-slate-400 mr-1.5"></i>
+                            {{ evt.description }}
+                        </p>
+
+                        <!-- Radius & Coords Pill -->
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1.5 mb-4 font-mono text-slate-600">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Radius:</span>
+                                <span class="font-bold text-blue-600">{{ evt.radius_meters }}m</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">GPS:</span>
+                                <span>{{ "%.4f"|format(evt.organizer_lat) }}, {{ "%.4f"|format(evt.organizer_lon) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <a href="{{ url_for('host.event_dashboard', event_id=evt.id) }}"
+                        class="w-full py-2.5 px-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-sm flex items-center justify-center space-x-2 transition">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>Open Live QR Dashboard</span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-16 geo-card bg-white">
+            <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-calendar-plus"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">No events created yet</h3>
+            <p class="text-sm text-slate-500 max-w-sm mx-auto mt-1 mb-6">Create your first event, capture your location, and start verifying student attendance with dynamic QR codes.</p>
+            <a href="{{ url_for('host.create_event_page') }}"
+                class="inline-flex items-center px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition">
+                <i class="fa-solid fa-plus mr-2"></i> Create Event Now
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

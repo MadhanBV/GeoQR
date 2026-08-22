@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Event – GeoQR{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Create New Event</h1>
+        <p class="mt-1 text-sm text-slate-500">Configure your event, lock your physical lecture hall GPS coordinates, and set the attendance boundary.</p>
+    </div>
+
+    <!-- Event Creation Form Card -->
+    <div class="geo-card p-6 sm:p-8 bg-white">
+        <form id="createEventForm" method="POST" action="{{ url_for('host.create_event_page') }}" class="space-y-6">
+            <!-- Event Title -->
+            <div>
+                <label for="title" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Event Title / Subject <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="title" name="title" required placeholder="e.g. CS401 Distributed Systems Lecture"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-slate-900 placeholder:text-slate-400">
+            </div>
+
+            <!-- Description / Venue -->
+            <div>
+                <label for="description" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Venue / Description <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="description" name="description" required placeholder="e.g. Room 302, Main Engineering Block"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-slate-900 placeholder:text-slate-400">
+            </div>
+
+            <!-- Event Date -->
+            <div>
+                <label for="date" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Event Date <span class="text-red-500">*</span>
+                </label>
+                <input type="date" id="date" name="date" required
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-slate-900">
+            </div>
+
+            <!-- GPS Geofence Anchor Section -->
+            <div class="p-5 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center">
+                            <i class="fa-solid fa-location-crosshairs text-blue-600 mr-2"></i>
+                            Organizer Location Anchor <span class="text-red-500 ml-1">*</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Locks the event center point. Students must be within radius of this coordinate.</p>
+                    </div>
+                    <span id="gpsStatusBadge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                        <i class="fa-solid fa-circle-dot text-amber-500 mr-1.5 text-[10px]"></i> Location Required
+                    </span>
+                </div>
+
+                <!-- GPS Action Button -->
+                <button type="button" id="btnCaptureGps"
+                    class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm flex items-center justify-center space-x-2 shadow-sm transition-all duration-150">
+                    <i class="fa-solid fa-crosshairs text-base"></i>
+                    <span id="btnGpsText">Detect & Lock My Current Location</span>
+                </button>
+
+                <!-- Captured Coordinates Display -->
+                <div id="gpsCoordsBox" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div class="p-3 bg-white rounded-xl border border-slate-200">
+                        <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Latitude</span>
+                        <span id="displayLat" class="text-sm font-bold text-slate-800 font-mono">-</span>
+                    </div>
+                    <div class="p-3 bg-white rounded-xl border border-slate-200">
+                        <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Longitude</span>
+                        <span id="displayLon" class="text-sm font-bold text-slate-800 font-mono">-</span>
+                    </div>
+                    <div class="p-3 bg-white rounded-xl border border-slate-200">
+                        <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">GPS Accuracy</span>
+                        <span id="displayAcc" class="text-sm font-bold text-emerald-600 font-mono">&plusmn; 0m</span>
+                    </div>
+                </div>
+
+                <!-- Hidden Input Fields for Form Submission -->
+                <input type="hidden" id="organizer_lat" name="organizer_lat" required>
+                <input type="hidden" id="organizer_lon" name="organizer_lon" required>
+            </div>
+
+            <!-- Attendance Radius Slider -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <label for="radius_meters" class="block text-sm font-semibold text-slate-700">
+                        Allowed Geofence Radius
+                    </label>
+                    <span class="text-sm font-bold text-blue-600 font-mono bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-100">
+                        <span id="radiusDisplay">50</span> meters
+                    </span>
+                </div>
+                
+                <input type="range" id="radius_meters" name="radius_meters" min="10" max="300" step="5" value="50"
+                    class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+
+                <!-- Preset Quick Buttons -->
+                <div class="flex items-center space-x-2 pt-1">
+                    <span class="text-xs text-slate-400 mr-1">Presets:</span>
+                    <button type="button" onclick="setRadius(25)" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">25m (Small Lab)</button>
+                    <button type="button" onclick="setRadius(50)" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 transition">50m (Classroom)</button>
+                    <button type="button" onclick="setRadius(100)" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">100m (Auditorium)</button>
+                    <button type="button" onclick="setRadius(200)" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">200m (Campus Ground)</button>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4">
+                <button type="submit" id="btnSubmit" disabled
+                    class="w-full py-3.5 px-4 rounded-xl bg-slate-300 text-slate-500 font-semibold text-sm flex items-center justify-center space-x-2 shadow-sm transition-all duration-200 cursor-not-allowed">
+                    <i class="fa-solid fa-qrcode text-base"></i>
+                    <span>Create Event & Launch Live QR</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set default date to today
+    document.getElementById('date').valueAsDate = new Date();
+
+    const radiusInput = document.getElementById('radius_meters');
+    const radiusDisplay = document.getElementById('radiusDisplay');
+
+    radiusInput.addEventListener('input', (e) => {
+        radiusDisplay.textContent = e.target.value;
+    });
+
+    function setRadius(val) {
+        radiusInput.value = val;
+        radiusDisplay.textContent = val;
+    }
+
+    // Geolocation Capture
+    const btnCaptureGps = document.getElementById('btnCaptureGps');
+    const btnGpsText = document.getElementById('btnGpsText');
+    const gpsStatusBadge = document.getElementById('gpsStatusBadge');
+    const gpsCoordsBox = document.getElementById('gpsCoordsBox');
+    const displayLat = document.getElementById('displayLat');
+    const displayLon = document.getElementById('displayLon');
+    const displayAcc = document.getElementById('displayAcc');
+    const inputLat = document.getElementById('organizer_lat');
+    const inputLon = document.getElementById('organizer_lon');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    btnCaptureGps.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser.');
+            return;
+        }
+
+        btnCaptureGps.disabled = true;
+        btnGpsText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Acquiring high-accuracy GPS...';
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const acc = Math.round(position.coords.accuracy);
+
+                inputLat.value = lat;
+                inputLon.value = lon;
+
+                displayLat.textContent = lat.toFixed(6);
+                displayLon.textContent = lon.toFixed(6);
+                displayAcc.textContent = `\u00B1 ${acc}m`;
+
+                gpsCoordsBox.classList.remove('hidden');
+                gpsStatusBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800";
+                gpsStatusBadge.innerHTML = '<i class="fa-solid fa-check text-green-600 mr-1.5 text-[10px]"></i> Location Locked';
+
+                btnGpsText.innerHTML = '<i class="fa-solid fa-arrows-rotate mr-2"></i> Update GPS Location';
+                btnCaptureGps.disabled = false;
+                btnCaptureGps.className = "w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm flex items-center justify-center space-x-2 transition";
+
+                // Enable submit button
+                btnSubmit.disabled = false;
+                btnSubmit.className = "w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 transition-all duration-200 cursor-pointer";
+            },
+            (error) => {
+                btnCaptureGps.disabled = false;
+                btnGpsText.textContent = 'Retry GPS Capture';
+                gpsStatusBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800";
+                gpsStatusBadge.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500 mr-1.5 text-[10px]"></i> GPS Access Denied';
+                alert(`Could not fetch location: ${error.message}. Please allow location permissions in your browser settings.`);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    });
+</script>
+{% endblock %}

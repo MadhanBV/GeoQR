@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} – Live QR Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6" id="dashboardContainer">
+    <!-- Top Event Header Card -->
+    <div class="geo-card p-6 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center space-x-3 mb-1.5">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-ping"></span> Live Attendance Active
+                </span>
+                <span class="text-xs font-mono text-slate-400">{{ event.date }}</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{{ event.title }}</h1>
+            <p class="text-sm text-slate-500 mt-1 flex items-center">
+                <i class="fa-solid fa-location-dot text-blue-600 mr-2"></i> {{ event.description }}
+            </p>
+        </div>
+
+        <!-- Event Geofence Metrics -->
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-right">
+                <span class="text-[11px] font-medium text-slate-400 block uppercase">Allowed Radius</span>
+                <span class="text-base font-bold text-blue-600 font-mono">{{ event.radius_meters }} meters</span>
+            </div>
+            <button id="btnFullscreen" class="p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 transition shadow-sm" title="Toggle Fullscreen for Projector">
+                <i class="fa-solid fa-expand text-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Grid: QR Broadcast Stage + Live Attendee Monitor -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT: Dynamic QR Code Stage (7 Cols) -->
+        <div class="lg:col-span-6 xl:col-span-5 flex flex-col items-center justify-center geo-card p-6 sm:p-8 bg-white text-center">
+            
+            <!-- Anti-Proxy Token Security Header -->
+            <div class="w-full flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-shield-halved text-blue-600 text-sm"></i>
+                    <span class="text-xs font-bold text-slate-700 tracking-wide uppercase">Anti-Proxy Security Engine</span>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">Auto-Rotating</span>
+            </div>
+
+            <!-- Dynamic QR Code Card -->
+            <div class="qr-container mb-6 relative group bg-white">
+                <img id="qrImage" src="" alt="Dynamic Event QR Code"
+                    class="w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-xl transition-opacity duration-200">
+                
+                <!-- Loading Overlay -->
+                <div id="qrLoadingOverlay" class="hidden absolute inset-0 bg-white/90 backdrop-blur-xs rounded-xl flex flex-col items-center justify-center space-y-2">
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-600"></i>
+                    <span class="text-xs font-medium text-slate-500">Generating fresh token...</span>
+                </div>
+            </div>
+
+            <!-- Countdown Timer & Progress Indicator -->
+            <div class="w-full max-w-xs flex flex-col items-center space-y-3">
+                
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+                    <div id="countdownProgressBar" class="bg-blue-600 h-full rounded-full transition-all duration-100 ease-linear" style="width: 100%;"></div>
+                </div>
+
+                <div class="flex items-center justify-between w-full text-xs font-medium text-slate-500">
+                    <span class="flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-blue-600 mr-1.5 animate-pulse"></span>
+                        QR Refreshes in:
+                    </span>
+                    <span id="countdownText" class="font-bold text-slate-900 font-mono text-sm bg-slate-100 px-2 py-0.5 rounded">25s</span>
+                </div>
+            </div>
+
+            <!-- Direct Link Copy for Testing -->
+            <div class="w-full pt-6 mt-6 border-t border-slate-100">
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="directCheckinUrl" readonly
+                        class="w-full px-3 py-2 text-xs font-mono bg-slate-50 rounded-lg border border-slate-200 text-slate-600 outline-none select-all truncate">
+                    <button id="btnCopyLink" onclick="copyCheckinLink()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition shrink-0">
+                        <i class="fa-regular fa-copy mr-1"></i> Copy
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">Students scan the QR using any mobile camera or browser.</p>
+            </div>
+        </div>
+
+        <!-- RIGHT: Live Attendee Log & Metrics (7 Cols) -->
+        <div class="lg:col-span-6 xl:col-span-7 geo-card p-6 bg-white flex flex-col justify-between">
+            <div>
+                <!-- Top Counter Bar -->
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Live Attendance Feed</h2>
+                        <p class="text-xs text-slate-400">Updates in real-time as students scan and verify</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-slate-400 font-medium">Total:</span>
+                        <span id="attendeeCountBadge" class="px-3 py-1 rounded-full text-sm font-extrabold bg-blue-600 text-white font-mono shadow-sm">
+                            0
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Live Attendees Table Container -->
+                <div class="overflow-x-auto mt-4 max-h-[460px] overflow-y-auto pr-1">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-[11px] uppercase tracking-wider text-slate-400 bg-slate-50 sticky top-0">
+                            <tr>
+                                <th class="py-2.5 px-3 rounded-l-lg">Student</th>
+                                <th class="py-2.5 px-3">Student ID</th>
+                                <th class="py-2.5 px-3">Distance</th>
+                                <th class="py-2.5 px-3 rounded-r-lg text-right">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendeeTableBody" class="divide-y divide-slate-100 font-medium">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+
+                    <!-- Empty State Placeholder -->
+                    <div id="noAttendeesState" class="text-center py-16">
+                        <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-lg">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-700">Awaiting student scans...</p>
+                        <p class="text-xs text-slate-400 max-w-xs mx-auto mt-1">Students will appear here instantly once their GPS geofence distance is verified.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Live Security Status -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                <span class="flex items-center">
+                    <i class="fa-solid fa-satellite-dish text-emerald-500 mr-1.5"></i> Live Firestore Sync
+                </span>
+                <span id="lastUpdatedText" class="font-mono text-[11px]">Just now</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const EVENT_ID = "{{ event.id }}";
+    const QR_REFRESH_INTERVAL_SECONDS = {{ qr_expiry_seconds|default(25) }};
+</script>
+<script src="{{ url_for('static', filename='js/host_dashboard.js') }}"></script>
+{% endblock %}

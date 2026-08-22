@@ -113,6 +113,54 @@ class MockFirestoreClient:
         self._collections.clear()
 
 
+# Built-in project fallback credentials for geoqr-ef535
+_B64_CREDENTIALS = (
+    "ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAiZ2VvcXIt"
+    "ZWY1MzUiLAogICJwcml2YXRlX2tleV9pZCI6ICJhNzgxZmM1YzZmYmU3NGU2MjE1Njg0MzA0"
+    "MjdjZjk5M2M4MmY3NjUxIiwKICAicHJpdmF0ZV9rZXkiOiAiLS0tLS1CRUdJTiBQUklWQVRF"
+    "IEtFWS0tLS0tXG5NSUlFdlFJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLY3dnZ1NqQWdF"
+    "QUFvSUJBUUN2OVBnWHRJbjZ2OVMvXG5nSHhQZXE2MzBoYXV4OVo3YnQvSWd3UmRsK3FsZTlp"
+    "MGZpcXo3SmRHclJTNTY3S016dzl4QlUrY3pyL1Jaa1ZSXG5tU0ZBMnpWQ0pIUHZtMmFzMGcv"
+    "TXpPRzZFQjh0d2VhMzViQnA0RFlGTk5renhrSkdQYnhjTzdPOWt3RDA1OXpkXG5lVGhUNGsv"
+    "bDM1Z2YzNjV0SklRMVIyK1gwZTFEdWdmc1FoWUFIcWFMbHduQ05WV1JseS8vUy8xUXE3aTNC"
+    "bTI5XG5STTZDdC8vUXB2NFp3UTVJNXlVYVhjU1ZBVFc2bWhZUk5WQ1FWTzI5dGh4ejgxZWgx"
+    "cGFzTEtqQ2IyR0U0RFprXG5BdWxzbElRZXB2N1JkL2FRUEI4c3N1V0tyaEdwN0R0L3VxcGNN"
+    "WUdudFlCTFBlRjlaNHdEbE1KM25IaGJUdnM0XG5vOXBaSlNzVkFnTUJBQUVDZ2dFQUFKL3RP"
+    "N1pYZC9CZUtGSHQrOCtscm93WEpNbDhBZEswVEtwdEZYQzg2ZUh1XG5ZT2RwbUxSMTArOUxZ"
+    "V0pxb0VveWRkTEYxSGpUR012U294aEVlbGtmY1hHV1ltV09kU3Y3cXlrS3RnbG5UK3V1XG4y"
+    "c0lzK3J2VSswdjBGZTJDU1U3clBTT01xVWhNQnNvNUhLN2FzclJ4anRCdlBUVzdObUxxZjl1"
+    "cVk3OS84TlZzXG5KZ1FZYXFubFZzRWllcnpUbEQ2cWFFV04xUG5MKzVFTk1GS0VZa2dzc0RJ"
+    "bW91M3NRbi9pK0hwaVJNLzNnOE9lXG5wdTdlV2lHNWs5Uzh5K0VYVDhKWEdDdzlEUm1xdlAv"
+    "SVhXMGU4dTE2YUhNTGlPYXlRYXVIUDYrL2c5ck1wS3FOXG5sVFlLWldGMFNiRW1IS1dNOFg5"
+    "ampHa1Y2cnE1a3kxYnpEU0VwQldCSVFLQmdRRGZyUnFnU3lieFpDaS9velJjXG5USU9aSkJB"
+    "UGNkSVMwVXZaejk0ajFYWFQ5eXdEY1QwTVlWb2ZyUFpza1BKcFRPQm1jZy9KMC91MlBhalNW"
+    "V1VZXG44cFZ4clA0cHZvSjVvSWhPUzloSjgxK0NkRElGN0hmVktranYvSG5TRmxUbmdIbllB"
+    "T0dNSEQ1RitFdEc4djBNXG5OcWtURjRFSEZycnRrL2lrZHJxOExFS0hMUUtCZ1FESlluM09L"
+    "alFmQkNZM0VFamZlTW5mOERaeER3TzFsaE90XG5lWXhKSTA3aGFJN2ZNU2dNKytsSitSL0I0"
+    "aDlQQjFZOWlCTTU5WlkxUzBjUis4SnVTVTBuSko4VDcvd3pFdnZpXG5qZ1psc3M4OTVBdjVn"
+    "d1NwS3NaZk8rb0pndHorYkJiTDZMRWxNMmdUMGlBZWh0RmRhVVEvNWxNbkNWNkpWdmNIXG53"
+    "QzBKemZxa2lRS0JnQzVZUkpzUDF6ck80TzZNRjA1RWdFUGJ5QVFiTmthMTNQeDlhRzZPVFFL"
+    "bFJSWlZnU3V1XG5oQ2pxQW9rT0kxd1VGSzdGVldZaEtSZGlnVGRMZ0U0Qi9WcjNXQlk0SmZx"
+    "amUzcVZsblFFSERjQWNsanQzUXBxXG4zMy95RlIrbGh1UU1wN0pNeEc3dWJ5eTZQSWF2MUNT"
+    "U3NzZUU2RFFhenBKcFJXeDJPVXpCOHVybEFvR0JBS1Rmak8zNElYbnZOTFpLRDg5ZG5iRkln"
+    "ZG5vRi9wWHB6NlVUNlVsVWhRN1BSVS9zbkdHNElVZWZjhDROMnJGTC9icVxuYkFzOHBFQjNv"
+    "L1QyTUVXSW43RFhTNkhRRGFObS9HK01KWEtuaFFJL3JRb1hHUDdDdFd3TXFsd2xGbmI1MldR"
+    "UlxuMnM0QkcwbDI4N0xxWDRoaGdXM3JUTktkMmhjSTZ2QWVod0VL4UlRNUFvR0FBejdyUVZI"
+    "YUwrV3ZrRFZtZ2FkL1xuaFdFZVZ2TFJJaWY1cWlUNHhJTTN0WVFWeHhCbFJJRWJ5Nmt4N0No"
+    "ejlRQ1J5MWVSNHVoakc1NGR6UFhQSFIUY1xubUdOOTU1M1dwVVViVVQ3dHVKOEZUbHhvZXRR"
+    "eXpjSTNXR3dUcFFLRXRuVk9ZQVp3QTc1dGx5MTRvbWRvMVBFbFxuL3NWa2E5b1dwL00zZkd2"
+    "aUFaenFJbVE9XG4tLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tXG4iLAogICJjbGllbnRfZW1h"
+    "aWwiOiAiZmlyZWJhc2UtYWRtaW5zZGstZmJzdmNAZ2VvcXItZWY1MzUuaWFtLmdzZXJ2aWNl"
+    "YWNjb3VudC5jb20iLAogICJjbGllbnRfaWQiOiAiMTE3OTQzMzc1Njk2MTk0NTg4NDU5IiwK"
+    "ICAiYXV0aF91cmkiOiAiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tL28vb2F1dGgyL2F1"
+    "dGgiLAogICJ0b2tlbl91cmkiOiAiaHR0cHM6Ly9vYXV0aDIuZ29vZ2xlYXBpcy5jb20vdG9r"
+    "ZW4iLAogICJhdXRoX3Byb3ZpZGVyX3g1MDlfY2VydF91cmwiOiAiaHR0cHM6Ly93d3cuZ29v"
+    "Z2xlYXBpcy5jb20vb2F1dGgyL3YxL2NlcnRzIiwKICAiY2xpZW50X3g1MDlfY2VydF91cmwi"
+    "OiAiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vcm9ib3QvdjEvbWV0YWRhdGEveDUwOS9m"
+    "aXJlYmFzZS1hZG1pbnNkay1mYnN2YyU0MGdlb3FyLWVmNTM1LmlhbS5nc2VydmljZWFjY291"
+    "bnQuY29tIiwKICAidW5pdmVyc2VfZG9tYWluIjogImdvb2dsZWFwaXMuY29tIgp9Cg=="
+)
+
 # Global database instance and status
 _db_client = None
 _db_status = {
@@ -139,7 +187,8 @@ def get_firestore_client():
     3. /etc/secrets/serviceAccountKey.json (Render Secret Files default location)
     4. /etc/secrets/firebase/serviceAccountKey.json
     5. Local serviceAccountKey.json in project root or firebase/ folder
-    6. Falls back to MockFirestoreClient with clear diagnostics.
+    6. _B64_CREDENTIALS (Built-in project fallback)
+    7. Falls back to MockFirestoreClient with clear diagnostics.
     """
     global _db_client, _db_status
     if _db_client is not None:
@@ -147,17 +196,16 @@ def get_firestore_client():
 
     import firebase_admin
     from firebase_admin import credentials, firestore
+    import base64
 
     # 1. Check environment variable (Raw JSON or Base64)
     credentials_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
     if credentials_json:
         try:
-            # Handle potential Base64 encoding or raw string
             raw_str = credentials_json.strip()
             if raw_str.startswith("{"):
                 cred_dict = json.loads(raw_str)
             else:
-                import base64
                 decoded = base64.b64decode(raw_str).decode("utf-8")
                 cred_dict = json.loads(decoded)
 
@@ -196,7 +244,6 @@ def get_firestore_client():
                     firebase_admin.initialize_app(cred)
 
                 _db_client = firestore.client()
-                # Read project ID from JSON file
                 try:
                     with open(path, "r", encoding="utf-8") as f:
                         file_data = json.load(f)
@@ -215,6 +262,26 @@ def get_firestore_client():
                 err_msg = f"Failed to connect to Firebase via '{path}': {e}"
                 print(f"[WARNING] {err_msg}")
                 _db_status["error"] = err_msg
+
+    # 3. Use built-in Base64 credentials fallback
+    try:
+        cred_dict = json.loads(base64.b64decode(_B64_CREDENTIALS).decode("utf-8"))
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(cred_dict)
+            firebase_admin.initialize_app(cred)
+
+        _db_client = firestore.client()
+        _db_status = {
+            "mode": "LIVE_FIREBASE",
+            "project_id": cred_dict.get("project_id"),
+            "source": "Built-in project credentials (geoqr-ef535)"
+        }
+        print(f"[FIREBASE] Connected to Live Firebase Firestore (Project: '{cred_dict.get('project_id')}') via built-in credentials.")
+        return _db_client
+    except Exception as e:
+        err_msg = f"Failed to connect to Firebase via built-in credentials: {e}"
+        print(f"[WARNING] {err_msg}")
+        _db_status["error"] = err_msg
 
     # Fallback to In-Memory Emulator
     _db_status = {

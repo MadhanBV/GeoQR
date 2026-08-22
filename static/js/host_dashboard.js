@@ -3,7 +3,7 @@
  * Manages 25-second rolling QR code token rotation and real-time attendee polling.
  */
 
-let totalDurationMs = (typeof QR_REFRESH_INTERVAL_SECONDS !== 'undefined' ? QR_REFRESH_INTERVAL_SECONDS : 25) * 1000;
+let totalDurationMs = (typeof QR_REFRESH_INTERVAL_SECONDS !== 'undefined' ? QR_REFRESH_INTERVAL_SECONDS : 50) * 1000;
 let remainingMs = totalDurationMs;
 let timerInterval = null;
 let attendeePollInterval = null;

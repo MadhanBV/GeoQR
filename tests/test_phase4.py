@@ -61,7 +61,7 @@ class TestPhase4HostPortal(unittest.TestCase):
         self.assertTrue(json_data["success"])
         self.assertTrue(len(json_data["token"]) > 20)
         self.assertTrue(json_data["qr_image"].startswith("data:image/png;base64,"))
-        self.assertEqual(json_data["expires_in"], 25)
+        self.assertEqual(json_data["expires_in"], 50)
         self.assertIn(self.event.id, json_data["checkin_url"])
 
     def test_event_attendees_api(self):

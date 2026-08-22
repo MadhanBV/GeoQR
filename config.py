@@ -15,8 +15,8 @@ class Config:
     # Secret key for cryptographic signing (itsdangerous and Flask sessions)
     SECRET_KEY = os.getenv("SECRET_KEY", "geoqr-insecure-dev-secret-key-change-in-prod-2026")
 
-    # Anti-Proxy QR code rotation window in seconds (Strict 25s window)
-    QR_TOKEN_MAX_AGE_SECONDS = int(os.getenv("QR_TOKEN_MAX_AGE_SECONDS", 25))
+    # Anti-Proxy QR code rotation window in seconds (Strict 50s window)
+    QR_TOKEN_MAX_AGE_SECONDS = int(os.getenv("QR_TOKEN_MAX_AGE_SECONDS", 50))
 
     # Path to Firebase service account credentials JSON file
     FIREBASE_CREDENTIALS_PATH = os.getenv(

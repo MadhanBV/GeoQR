@@ -71,7 +71,7 @@
                         <span class="w-2 h-2 rounded-full bg-blue-600 mr-1.5 animate-pulse"></span>
                         QR Refreshes in:
                     </span>
-                    <span id="countdownText" class="font-bold text-slate-900 font-mono text-sm bg-slate-100 px-2 py-0.5 rounded">25s</span>
+                    <span id="countdownText" class="font-bold text-slate-900 font-mono text-sm bg-slate-100 px-2 py-0.5 rounded">50s</span>
                 </div>
             </div>
 
@@ -148,7 +148,7 @@
 {% block scripts %}
 <script>
     const EVENT_ID = "{{ event.id }}";
-    const QR_REFRESH_INTERVAL_SECONDS = {{ qr_expiry_seconds|default(25) }};
+    const QR_REFRESH_INTERVAL_SECONDS = {{ qr_expiry_seconds|default(50) }};
 </script>
 <script src="{{ url_for('static', filename='js/host_dashboard.js') }}"></script>
 {% endblock %}

@@ -35,6 +35,7 @@ def submit_attendance_api():
     student_id = data.get("student_id", "").strip()
     student_lat = data.get("student_lat")
     student_lon = data.get("student_lon")
+    accuracy = data.get("accuracy", 0.0)
 
     # Capture client device metadata
     user_agent = request.headers.get("User-Agent", "Unknown")
@@ -47,6 +48,7 @@ def submit_attendance_api():
         student_name=student_name,
         student_lat=student_lat,
         student_lon=student_lon,
+        accuracy=float(accuracy or 0.0),
         user_agent=user_agent,
         ip_address=ip_address
     )

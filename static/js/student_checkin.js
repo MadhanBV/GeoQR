@@ -25,6 +25,7 @@ const formErrorBanner = document.getElementById('formErrorBanner');
 const formErrorMessage = document.getElementById('formErrorMessage');
 
 let gpsAcquired = false;
+let deviceAccuracy = 0;
 
 /**
  * Requests GPS coordinates from the mobile browser with smart tiered fallback.
@@ -56,6 +57,7 @@ function acquireGpsLocation() {
 
         inputLat.value = lat;
         inputLon.value = lon;
+        deviceAccuracy = accuracy;
         gpsAcquired = true;
 
         // Update UI to Success State
@@ -152,7 +154,8 @@ if (form) {
             student_name: inputStudentName.value.trim(),
             student_id: inputStudentId.value.trim(),
             student_lat: parseFloat(inputLat.value),
-            student_lon: parseFloat(inputLon.value)
+            student_lon: parseFloat(inputLon.value),
+            accuracy: deviceAccuracy
         };
 
         // Loading State

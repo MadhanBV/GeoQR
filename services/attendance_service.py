@@ -20,6 +20,7 @@ class AttendanceService:
         student_name: str,
         student_lat: float,
         student_lon: float,
+        accuracy: float = 0.0,
         user_agent: Optional[str] = None,
         ip_address: Optional[str] = None
     ) -> Tuple[bool, str, Optional[AttendanceRecord], Optional[Dict[str, Any]]]:
@@ -85,7 +86,7 @@ class AttendanceService:
                     "existing_timestamp": rec.get("timestamp")
                 }
 
-        # LAYER 4: Server-Side Geofence Haversine calculation
+        # LAYER 4: Server-Side Geofence Haversine calculation with device accuracy tolerance
         distance = calculate_haversine_distance(
             event.organizer_lat,
             event.organizer_lon,
@@ -93,15 +94,20 @@ class AttendanceService:
             lon_f
         )
 
-        if distance > event.radius_meters:
-            diff = round(distance - event.radius_meters, 1)
+        # Consider device reported accuracy (capped at 150m buffer) for indoor Wi-Fi / cellular variance
+        acc_buffer = min(max(0.0, float(accuracy or 0.0)), 150.0) * 0.6
+        allowed_boundary = round(event.radius_meters + acc_buffer, 1)
+
+        if distance > allowed_boundary:
+            diff = round(distance - allowed_boundary, 1)
             return False, (
                 f"Location out of bounds! You are {distance}m away from the event location. "
-                f"Allowed radius is {event.radius_meters}m (you are {diff}m outside)."
+                f"Allowed boundary is {allowed_boundary}m (you are {diff}m outside)."
             ), None, {
                 "error_type": "OUT_OF_BOUNDS",
                 "distance": distance,
-                "radius": event.radius_meters
+                "radius": event.radius_meters,
+                "allowed_boundary": allowed_boundary
             }
 
         # LAYER 5: Save verified record

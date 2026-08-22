@@ -156,44 +156,59 @@
         }
 
         btnCaptureGps.disabled = true;
-        btnGpsText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Acquiring high-accuracy GPS...';
+        btnGpsText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Acquiring GPS location...';
+
+        function onOrganizerGpsSuccess(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const acc = Math.round(position.coords.accuracy);
+
+            inputLat.value = lat;
+            inputLon.value = lon;
+
+            displayLat.textContent = lat.toFixed(6);
+            displayLon.textContent = lon.toFixed(6);
+            displayAcc.textContent = `\u00B1 ${acc}m`;
+
+            gpsCoordsBox.classList.remove('hidden');
+            gpsStatusBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800";
+            gpsStatusBadge.innerHTML = '<i class="fa-solid fa-check text-green-600 mr-1.5 text-[10px]"></i> Location Locked';
+
+            btnGpsText.innerHTML = '<i class="fa-solid fa-arrows-rotate mr-2"></i> Update GPS Location';
+            btnCaptureGps.disabled = false;
+            btnCaptureGps.className = "w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm flex items-center justify-center space-x-2 transition";
+
+            // Enable submit button
+            btnSubmit.disabled = false;
+            btnSubmit.className = "w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 transition-all duration-200 cursor-pointer";
+        }
+
+        function onOrganizerGpsError(error) {
+            // If strict GPS times out indoors, retry with balanced mode
+            navigator.geolocation.getCurrentPosition(
+                onOrganizerGpsSuccess,
+                (finalErr) => {
+                    btnCaptureGps.disabled = false;
+                    btnGpsText.textContent = 'Retry GPS Capture';
+                    gpsStatusBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800";
+                    gpsStatusBadge.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500 mr-1.5 text-[10px]"></i> GPS Error';
+                    alert(`Could not fetch location: ${finalErr.message}. Please ensure device location is enabled.`);
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 15000,
+                    maximumAge: 60000
+                }
+            );
+        }
 
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                const acc = Math.round(position.coords.accuracy);
-
-                inputLat.value = lat;
-                inputLon.value = lon;
-
-                displayLat.textContent = lat.toFixed(6);
-                displayLon.textContent = lon.toFixed(6);
-                displayAcc.textContent = `\u00B1 ${acc}m`;
-
-                gpsCoordsBox.classList.remove('hidden');
-                gpsStatusBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800";
-                gpsStatusBadge.innerHTML = '<i class="fa-solid fa-check text-green-600 mr-1.5 text-[10px]"></i> Location Locked';
-
-                btnGpsText.innerHTML = '<i class="fa-solid fa-arrows-rotate mr-2"></i> Update GPS Location';
-                btnCaptureGps.disabled = false;
-                btnCaptureGps.className = "w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm flex items-center justify-center space-x-2 transition";
-
-                // Enable submit button
-                btnSubmit.disabled = false;
-                btnSubmit.className = "w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 transition-all duration-200 cursor-pointer";
-            },
-            (error) => {
-                btnCaptureGps.disabled = false;
-                btnGpsText.textContent = 'Retry GPS Capture';
-                gpsStatusBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800";
-                gpsStatusBadge.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500 mr-1.5 text-[10px]"></i> GPS Access Denied';
-                alert(`Could not fetch location: ${error.message}. Please allow location permissions in your browser settings.`);
-            },
+            onOrganizerGpsSuccess,
+            onOrganizerGpsError,
             {
                 enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
+                timeout: 12000,
+                maximumAge: 30000
             }
         );
     });

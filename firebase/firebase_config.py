@@ -229,7 +229,7 @@ def get_firestore_client():
         _db_status = {
             "mode": "LIVE_FIREBASE",
             "project_id": cred_dict.get("project_id"),
-            "source": "Built-in project credentials (geoqr-ef535)"
+            "source": f"Built-in project credentials ({cred_dict.get('project_id')})"
         }
         print(f"[FIREBASE] Connected to Live Firebase Firestore (Project: '{cred_dict.get('project_id')}') via built-in credentials.")
         return _db_client
